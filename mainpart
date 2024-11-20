@@ -1,0 +1,95 @@
+import tm1637
+from machine import Pin
+import time
+from temp import TEMP
+tm = tm1637.TM1637(clk=Pin(27), dio=Pin(26))
+
+#Duration of sleeptime between LED-Switch
+d = 0.5
+temp = TEMP()
+
+def adjust_brightness():
+    t = temp.temp()
+    if int(t) < 17:
+        tm.brightness(1)
+    elif int(t) < 19:
+        tm.brightness(2)
+    elif int(t) < 21:
+        tm.brightness(3)
+    elif int(t) < 22:
+        tm.brightness(4)
+    elif int(t) < 23:
+        tm.brightness(5)
+    elif int(t) < 24:
+        tm.brightness(6)
+    else:
+        tm.brightness(7)
+
+t1 = time.ticks_ms()
+for i in range(3):
+    adjust_brightness()
+    up = 0b00000001
+    right = 0b00000010
+    down = 0b00001000
+    left = 0b00010000
+    empty = [0, 0, 0, 0]
+    list1 = [up, 0, 0, 0]
+    list2 = [0, 0, 0, down]
+    for i in range(4):
+        tm.write(list1)
+        del list1[i]
+        list1.insert(i+1, up)
+        i =+ 1
+        time.sleep(d)
+    adjust_brightness()
+    for i in range(2):
+        tm.write([0, 0, 0, right+i*2])
+        time.sleep(d)
+    adjust_brightness()
+    for i in range(4):
+        tm.write(list2)
+        del list2[3-i]
+        list2.insert(2-i, down)
+        i =+ 1
+        time.sleep(d)
+    adjust_brightness()
+    for i in range(2):
+        tm.write([left+16*i, 0, 0, 0])
+        time.sleep(d)
+    adjust_brightness()
+t2 = time.ticks_ms()
+print("Zeit iteriert:", t2-t1)
+
+t1 = time.ticks_ms()
+for i in range(3):
+    adjust_brightness()
+    tm.write([0b00000001, 0, 0, 0])
+    time.sleep(d)
+    tm.write([0, 0b00000001, 0, 0])
+    time.sleep(d)
+    tm.write([0, 0, 0b00000001, 0])
+    time.sleep(d)
+    tm.write([0, 0, 0, 0b0000001])
+    time.sleep(d)
+    adjust_brightness()
+    tm.write([0, 0, 0, 0b00000010])
+    time.sleep(d)
+    tm.write([0, 0, 0, 0b00000100])
+    time.sleep(d)
+    adjust_brightness()
+    tm.write([0, 0, 0, 0b00001000])
+    time.sleep(d)
+    tm.write([0, 0, 0b00001000, 0])
+    time.sleep(d)
+    tm.write([0, 0b00001000, 0, 0])
+    time.sleep(d)
+    tm.write([0b00001000 , 0, 0, 0])
+    time.sleep(d)
+    adjust_brightness()
+    tm.write([0b00010000, 0, 0, 0])
+    time.sleep(d)
+    tm.write([0b00100000, 0, 0, 0])
+    time.sleep(d)
+    adjust_brightness()
+t2 = time.ticks_ms()
+print("Zeit LED-Ablauf:", t2-t1)
